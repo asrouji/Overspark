@@ -1,4 +1,4 @@
-const fortniteClassId = 21216;
+const fortniteClassId = 9898;
 
 const interestingFeatures = [
   'counters',
