@@ -18,12 +18,20 @@ class InGame extends AppWindow {
   private _hearthstoneGameEventsListener: OWGamesEvents;
   private _eventsLog: HTMLElement;
   private _infoLog: HTMLElement;
+  private _consoleLog: HTMLElement;
+  private _consoleForm: HTMLElement;
+  private _deck_tracker: HTMLElement;
+  private CONSOLE_COMMANDS = ["add", "clear"]
+  private CONSOLE_ARGS = ["card"]
 
   private constructor() {
     super(windowNames.inGame);
 
     this._eventsLog = document.getElementById('eventsLog');
     this._infoLog = document.getElementById('infoLog');
+    this._consoleLog = document.getElementById('consoleLog');
+    this._consoleForm = document.getElementById("consoleForm");
+    this._deck_tracker = document.getElementById("deck_tracker_container");
 
     this.setToggleHotkeyBehavior();
     this.setToggleHotkeyText();
@@ -33,6 +41,79 @@ class InGame extends AppWindow {
       onNewEvents: this.onNewEvents.bind(this)
     },
       interestingFeatures);
+
+    this._consoleForm.onsubmit = () => {
+      const line_div = document.createElement("div");
+
+      const line = document.createElement('pre');
+      const arrows = document.createElement("span");
+      arrows.innerText = ">>>";
+      arrows.style.color = "aqua";
+
+      let input = (document.getElementById("consoleFormInput") as HTMLInputElement).value.split(" ");
+      let output = "<span>";
+      for (let arg of input) {
+        // Check if arg is in commands and is the first argument of input
+        if (this.CONSOLE_COMMANDS.includes(arg) && input[0] == arg) {
+          output += "<span class='yellow'>" + arg + "</span>";
+        } else if (this.CONSOLE_ARGS.includes(arg)) {
+          output += "<span class='green'>" + arg + "</span>";
+        } else {
+          output += arg;
+        }
+        output += " ";
+      }
+      output += "</span>";
+
+      line.innerHTML = output;
+      line_div.appendChild(arrows);
+      line_div.appendChild(line)
+
+      const shouldAutoScroll = (this._consoleLog.scrollTop + this._consoleLog.offsetHeight) > (this._consoleLog.scrollHeight - 10);
+
+      // Add the line to the console
+      this._consoleLog.appendChild(line_div);
+
+      // Execute the command if it exists
+      if (this.CONSOLE_COMMANDS.includes(input[0])) {
+        this.console_execute(input);
+      }
+
+      if (shouldAutoScroll) {
+        this._consoleLog.scrollTop = this._consoleLog.scrollHeight;
+      }
+
+      // Clear the current input line and prevent reload
+      (document.getElementById("consoleFormInput") as HTMLInputElement).value = "";
+      return false;
+    };
+
+  }
+
+  private console_execute(input) {
+    let command = input[0];
+    let args = input.slice(1, input.length);
+
+    // 'add' commands
+    if (command == "add") {
+
+      if (args.length < 3) {
+        this.console_log("Missing required arguments")
+        return false
+      }
+
+      // 'card' commands
+      if (args[0] == "card") {
+        this.console_log("Added card '" + args[1] + "' to deck tracker.")
+        this.addCard({"name": args[1], "cost": args[2]}, 1)
+      }
+    }
+  }
+
+  private console_log(message) {
+    const line_div = document.createElement("div");
+    line_div.innerHTML = message;
+    this._consoleLog.appendChild(line_div)
   }
 
   public static instance() {
@@ -47,6 +128,7 @@ class InGame extends AppWindow {
     this._hearthstoneGameEventsListener.start();
   }
 
+  // Log new info to the info log
   private onInfoUpdates(info) {
     this.logLine(this._infoLog, info, false);
     this.manageInfoState(info);
@@ -122,6 +204,32 @@ class InGame extends AppWindow {
       log.scrollTop = log.scrollHeight;
     }
   }
+
+  // Functions that interact with the deck tracker
+  // Card must be in the format:
+  // {"name": "example", "cost": 3, etc...}
+  private addCard(card, quantity) {
+    this._deck_tracker = document.getElementById("deck_tracker_container")
+    let card_dom = document.createElement("div");
+    card_dom.classList.add("card");
+    card_dom.innerHTML =
+      "          <div class=\"card-info\">" + card["cost"] + "</div>\n" +
+      "          <div class=\"card-body\">" + card["name"] + "</div>\n" +
+      "          <div class=\"card-quantity\">" + quantity + "</div>\n";
+
+    let i = 0
+    for (let other_card of this._deck_tracker.children) {
+      if (card["cost"] < parseInt((other_card.children[0] as HTMLElement).innerText)) {
+        // Insert card at the correct position
+        this._deck_tracker.insertBefore(card_dom, this._deck_tracker.children[i-1])
+      } else if (i == this._deck_tracker.children.length - 1) {
+        // this._deck_tracker.appendChild(card_dom)
+        this._deck_tracker.appendChild(card_dom);
+      }
+      i += 1;
+    }
+  }
+
 }
 
 InGame.instance().run();

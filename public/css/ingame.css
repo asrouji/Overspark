@@ -3,7 +3,7 @@
 }
 
 body {
-  background-color: #333333;
+  background-color: transparent;
   margin: 0px;
   display: flex;
   flex-direction: column;
@@ -25,20 +25,6 @@ h1 {
   font-weight: normal;
   font-size: 18px;
   color: #d5d5d5;
-}
-
-#logs {
-  display: flex;
-  justify-content: space-between;
-  flex: 0 0 auto;
-  width: calc(100% - 210px);
-}
-
-.logColumn {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 50%;
-  padding-right: 30px;
 }
 
 #ad {
@@ -85,39 +71,44 @@ h1 {
 }
 
 .dataText {
-  background-color: #464646;
-  border-radius: 4px;
-  overflow-x: hidden;
-  overflow-y: auto;
   white-space: nowrap;
   padding: 10px;
-  margin-top: 16px;
-  color: #8d8d8d;
-  height: calc(100vh - 165px);
-  max-width: inherit;
+  overflow: auto;
+  overflow-x: hidden;
+  color: #b1b1b1;
+  width: calc(100% - 30px);
+  height: 300px;
+  text-align: left;
 }
 
 .dataText pre {
   white-space: pre-line;
   word-break: break-word;
   margin: 5px 0;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.dataText div > span {
+  margin-right: 8px;
+  margin-top: 6px;
+  display: inline-block;
+}
+
+.dataText div {
+  clear: both;
 }
 
 .dataText::-webkit-scrollbar {
-  width: 20px;
+  width: 0;
 }
 
 .dataText::-webkit-scrollbar-track {
-  background: #333333;
-  border-left: 9px solid #464646;
-  border-right: 9px solid #464646;
-  margin: 10px 0px;
+  background: transparent;
 }
 
 .dataText::-webkit-scrollbar-thumb {
-  background: #8d8d8d;
-  border-left: 8px solid #464646;
-  border-right: 8px solid #464646;
+  background: transparent;
 }
 
 .highlight {
@@ -143,4 +134,96 @@ button.logCopy {
 button.logCopy:hover {
   background: #8d8d8d;
   color: #ffffff;
+}
+
+form {
+  width: 100%;
+}
+
+form input {
+  width: calc(100% - 8px);
+  height: 34px;
+  background-color: #333333;
+  color: white;
+  border: none;
+  border-bottom-right-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+#info_updates, #game_events, #console, #deck_tracker {
+  position: absolute;
+  z-index: 9;
+  border: 2px solid #7d7d7d;
+  text-align: center;
+  width: 300px;
+  border-radius: 8px;
+}
+
+.draggable_header {
+  padding: 10px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  cursor: move;
+  z-index: 10;
+  background-color: #003865;
+  color: #fff;
+}
+
+.draggable_header:hover, .draggable_header h1, .draggable_header h1:hover {
+  cursor: move;
+}
+
+.draggable_body {
+  border-bottom-right-radius: 8px;
+  border-bottom-left-radius: 8px;
+  background-color: #1c1c1c;
+}
+
+.yellow {
+  color: #f5d800;
+}
+
+.red {
+  color: red;
+}
+
+.green {
+  color: lawngreen;
+}
+
+.aqua {
+  color: #00defa;
+}
+
+.card {
+  width: 100%;
+  height: 30px;
+  background: gray;
+  line-height: 30px;
+}
+
+.card-info {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  background-color: white;
+  color: black;
+  border-radius: 50px;
+  text-align: center;
+}
+
+.card-body {
+  text-align: center;
+  font-weight: 700;
+  display: inline-block;
+  width: 75%;
+}
+
+.card-quantity {
+  border-radius: 50px;
+  display: inline-block;
+  color: black;
+  background-color: white;
+  height: 30px;
+  width: 30px;
 }
