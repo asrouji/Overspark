@@ -53,17 +53,13 @@ class InGame extends AppWindow {
   private onNewEvents(e) {
     const shouldHighlight = e.events.some(event => {
       switch (event.name) {
-        case 'kill':
-        case 'death':
-        case 'assist':
-        case 'level':
-        case 'matchStart':
-        case 'matchEnd':
+        case 'match':
           return true;
       }
 
       return false
     });
+    this.manageEventState(e)
     this.logLine(this._eventsLog, e, shouldHighlight);
   }
 
@@ -92,10 +88,18 @@ class InGame extends AppWindow {
     OWHotkeys.onHotkeyDown(hotkeys.toggle, toggleInGameWindow);
   }
 
+  private manageEventState(data) {
+
+    if (data["events"][0]["name"] == "match_start") {
+      let p_el = document.createElement("p")
+      p_el.innerText = "MATCH STARTED"
+      this._infoLog.appendChild(p_el);
+    }
+
+  }
+
   // Appends a new line to the specified log
   private logLine(log: HTMLElement, data, highlight) {
-    console.log(`${log.id}:`);
-    console.log(data);
     const line = document.createElement('pre');
     line.textContent = JSON.stringify(data);
 
