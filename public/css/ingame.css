@@ -159,6 +159,10 @@ form input {
   border-radius: 8px;
 }
 
+#deck_tracker {
+  width: 300px;
+}
+
 .draggable_header {
   padding: 10px;
   border-top-left-radius: 8px;
@@ -200,9 +204,11 @@ form input {
   height: 30px;
   background: gray;
   line-height: 30px;
+  cursor: default;
 }
 
 .card-info {
+  cursor: default;
   display: inline-block;
   width: 30px;
   height: 30px;
@@ -213,6 +219,7 @@ form input {
 }
 
 .card-body {
+  cursor: default;
   text-align: center;
   font-weight: 700;
   display: inline-block;
@@ -220,10 +227,33 @@ form input {
 }
 
 .card-quantity {
+  cursor: default;
   border-radius: 50px;
   display: inline-block;
   color: black;
   background-color: white;
   height: 30px;
   width: 30px;
+}
+
+.card .card_preview {
+  display: none;
+}
+
+.card:hover .card_preview {
+  display: block;
+}
+
+.card_preview:hover .card_preview {
+  display: none;
+}
+
+.card_preview {
+  position: relative;
+  margin-left: -500px;
+  margin-top: -150px;
+}
+
+.card_preview img {
+  height: 300px;
 }

@@ -106,7 +106,7 @@ class InGame extends AppWindow {
       // 'card' commands
       if (args[0] == "card") {
         this.console_log("Added card '" + args[1] + "' to deck tracker.");
-        this.addCard({"name": args[1], "cost": args[2]}, 1);
+        this.addCard({"name": args[1], "cost": args[2], "count": 1});
       }
     } else if (command == "clear") {
       if (args.length < 1) {
@@ -201,6 +201,7 @@ class InGame extends AppWindow {
     for (let [key, value] of Object.entries(data)) {
       let name = JSON.stringify(key);
       let cards = [];
+      this.console_log("Adding deck " + name);
       for (let [k, v] of Object.entries(JSON.parse("" + value)["cards"])) {
         let id, name, count, cost, url;
         id = JSON.parse("" + JSON.stringify(v))["id"]
@@ -243,9 +244,10 @@ class InGame extends AppWindow {
 
   private manageEventState(data) {
     if (data["events"][0]["name"] == "match_start") {
-      let p_el = document.createElement("p")
-      p_el.innerText = "MATCH STARTED"
-      this._infoLog.appendChild(p_el);
+
+      this.generateDeck(decks[0]);
+
+      this.console_log("MATCH STARTED", "red");
     }
   }
 
@@ -269,15 +271,19 @@ class InGame extends AppWindow {
 
   // Functions that interact with the deck tracker
   // Card must be in the format:
-  // {"name": "example", "cost": 3, etc...}
-  private addCard(card, quantity) {
+  // {"name": "example", "count": 2, "url": "test...", "cost": 3}
+  private addCard(card) {
     this._deck_tracker = document.getElementById("deck_tracker_container")
+    let quantity = card["count"];
     let card_dom = document.createElement("div");
     card_dom.classList.add("card");
     card_dom.innerHTML =
       "          <div class=\"card-info\">" + card["cost"] + "</div>\n" +
       "          <div class=\"card-body\">" + card["name"] + "</div>\n" +
-      "          <div class=\"card-quantity\">" + quantity + "</div>\n";
+      "          <div class=\"card-quantity\">" + quantity + "</div>\n" +
+      "          <div class=\"card_preview\">\n" +
+      "            <img src=\"" + card["url"] + "\" alt=\"" + card["name"] + "\">\n" +
+      "          </div>\n";
 
 
     // If the deck has no cards in it
@@ -313,8 +319,8 @@ class InGame extends AppWindow {
   // Create the deck based upon a list of cards
   private generateDeck(deck) {
       this.clearDeck()
-      for (let card of deck) {
-        this.addCard(card, 1)
+      for (let card of deck["cards"]) {
+        this.addCard(card)
       }
   }
 
