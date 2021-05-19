@@ -6,7 +6,7 @@ import {
 import { interestingFeatures, hotkeys, windowNames, hearthstoneClassId } from "../consts";
 import WindowState = overwolf.windows.WindowStateEx;
 
-let decks = [];
+var decks = [];
 
 // The window displayed in-game while a hearthstone game is running.
 // It listens to all info events and to the game events listed in the consts.ts file
@@ -21,8 +21,6 @@ class InGame extends AppWindow {
   private _consoleLog: HTMLElement;
   private _consoleForm: HTMLElement;
   private _deck_tracker: HTMLElement;
-  private CLIENT_ID = "0dc7b3e55fc647a7bfc500b3e7ed70a9";
-  private CLIENT_SECRET = "kfUaxXrA8QdDIj0xF1ynrb1k3zqUEbId";
   private CONSOLE_COMMANDS = ["add", "clear"]
   private CONSOLE_ARGS = ["card", "deck"]
 
@@ -200,19 +198,41 @@ class InGame extends AppWindow {
   private updateDecks(data) {
     decks = [];
     this.logLine(this._infoLog, data, false);
-    let deckCount = 0;
     for (let [key, value] of Object.entries(data)) {
-      deckCount++;
       let name = JSON.stringify(key);
       let cards = [];
       for (let [k, v] of Object.entries(JSON.parse("" + value)["cards"])) {
-        let id, count;
+        let id, name, count, cost, url;
         id = JSON.parse("" + JSON.stringify(v))["id"]
-        count = JSON.parse("" + JSON.stringify(v))["count"]
-        cards.push({"id": id, "count": count})
+        this.console_log("id: " + id);
+        this.getCardById(id, (response) => {
+          response.text().then((text) => {
+            name = JSON.parse(text)[0]["name"];
+            count = parseInt(JSON.parse("" + JSON.stringify(v))["count"])
+            cost = JSON.parse(text)[0]["cost"];
+            url = JSON.parse(text)[0]["img"];
+            cards.push({"name": name, "count": count, "cost": cost, "url": url})
+          });
+        });
       }
       decks.push({"name": name, "cards": cards})
     }
+  }
+
+  private getCardById(id, callback) {
+    fetch("https://omgvamp-hearthstone-v1.p.rapidapi.com/cards/" + id, {
+	    "method": "GET",
+	    "headers": {
+		    "x-rapidapi-key": "af57618811msh87681078a3caecdp1cc580jsn6be77ad229cf",
+		    "x-rapidapi-host": "omgvamp-hearthstone-v1.p.rapidapi.com"
+	    }
+    })
+    .then(response => {
+	    callback(response);
+    })
+    .catch(err => {
+	    this.console_log(err);
+    });
   }
 
   private manageInfoState(info) {
