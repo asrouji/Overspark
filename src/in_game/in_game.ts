@@ -203,16 +203,18 @@ class InGame extends AppWindow {
       let cards = [];
       this.console_log("Adding deck " + name);
       for (let [k, v] of Object.entries(JSON.parse("" + value)["cards"])) {
-        let id, name, count, cost, url;
+        let id, name, count, premiumCount, totalCount, cost, url;
         id = JSON.parse("" + JSON.stringify(v))["id"]
         this.console_log("id: " + id);
         this.getCardById(id, (response) => {
           response.text().then((text) => {
             name = JSON.parse(text)[0]["name"];
-            count = parseInt(JSON.parse("" + JSON.stringify(v))["count"])
+            count = parseInt(JSON.parse("" + JSON.stringify(v))["count"]);
+            premiumCount = parseInt(JSON.parse("" + JSON.stringify(v))["premiumCount"]);
+            totalCount = count + premiumCount;
             cost = JSON.parse(text)[0]["cost"];
             url = JSON.parse(text)[0]["img"];
-            cards.push({"name": name, "count": count, "cost": cost, "url": url})
+            cards.push({"name": name, "count": totalCount, "cost": cost, "url": url})
           });
         });
       }
@@ -245,7 +247,7 @@ class InGame extends AppWindow {
   private manageEventState(data) {
     if (data["events"][0]["name"] == "match_start") {
 
-      this.generateDeck(decks[0]);
+      this.generateDeck(decks[7]);
 
       this.console_log("MATCH STARTED", "red");
     }
