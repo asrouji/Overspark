@@ -89,7 +89,7 @@ h1 {
   vertical-align: top;
 }
 
-.dataText div > span {
+.dataText div > span.first {
   margin-right: 8px;
   margin-top: 6px;
   display: inline-block;

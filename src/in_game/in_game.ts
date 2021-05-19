@@ -6,13 +6,13 @@ import {
 import { interestingFeatures, hotkeys, windowNames, hearthstoneClassId } from "../consts";
 import WindowState = overwolf.windows.WindowStateEx;
 
-var decks = [];
+let decks = [];
 
 // The window displayed in-game while a hearthstone game is running.
 // It listens to all info events and to the game events listed in the consts.ts file
 // and writes them to the relevant log using <pre> tags.
-// The window also sets up Ctrl+F as the minimize/restore hotkey.
 // Like the background window, it also implements the Singleton design pattern.
+
 class InGame extends AppWindow {
   private static _instance: InGame;
   private _hearthstoneGameEventsListener: OWGamesEvents;
@@ -21,10 +21,10 @@ class InGame extends AppWindow {
   private _consoleLog: HTMLElement;
   private _consoleForm: HTMLElement;
   private _deck_tracker: HTMLElement;
-  private CONSOLE_COMMANDS = ["add", "clear"];
-  private CONSOLE_ARGS = ["card"];
   private CLIENT_ID = "0dc7b3e55fc647a7bfc500b3e7ed70a9";
   private CLIENT_SECRET = "kfUaxXrA8QdDIj0xF1ynrb1k3zqUEbId";
+  private CONSOLE_COMMANDS = ["add", "clear"]
+  private CONSOLE_ARGS = ["card", "deck"]
 
   private constructor() {
     super(windowNames.inGame);
@@ -49,6 +49,7 @@ class InGame extends AppWindow {
 
       const line = document.createElement('pre');
       const arrows = document.createElement("span");
+      arrows.classList.add("first");
       arrows.innerText = ">>>";
       arrows.style.color = "aqua";
 
@@ -58,7 +59,7 @@ class InGame extends AppWindow {
         // Check if arg is in commands and is the first argument of input
         if (this.CONSOLE_COMMANDS.includes(arg) && input[0] == arg) {
           output += "<span class='yellow'>" + arg + "</span>";
-        } else if (this.CONSOLE_ARGS.includes(arg)) {
+        } else if (this.CONSOLE_ARGS.includes(arg) && input[0] != arg) {
           output += "<span class='green'>" + arg + "</span>";
         } else {
           output += arg;
@@ -77,9 +78,7 @@ class InGame extends AppWindow {
       this._consoleLog.appendChild(line_div);
 
       // Execute the command if it exists
-      if (this.CONSOLE_COMMANDS.includes(input[0])) {
-        this.console_execute(input);
-      }
+      this.console_execute(input);
 
       if (shouldAutoScroll) {
         this._consoleLog.scrollTop = this._consoleLog.scrollHeight;
@@ -93,28 +92,56 @@ class InGame extends AppWindow {
   }
 
   private console_execute(input) {
+    // Update the reference to deck tracker
+    this._deck_tracker = document.getElementById("deck_tracker_container");
+
     let command = input[0];
     let args = input.slice(1, input.length);
 
     // 'add' commands
     if (command == "add") {
-
       if (args.length < 3) {
-        this.console_log("Missing required arguments")
-        return false
+        this.console_log("Missing required arguments");
+        return false;
       }
 
       // 'card' commands
       if (args[0] == "card") {
-        this.console_log("Added card '" + args[1] + "' to deck tracker.")
-        this.addCard({"name": args[1], "cost": args[2]}, 1)
+        this.console_log("Added card '" + args[1] + "' to deck tracker.");
+        this.addCard({"name": args[1], "cost": args[2]}, 1);
       }
+    } else if (command == "clear") {
+      if (args.length < 1) {
+        this.console_log("Missing required arguments");
+        return false
+      }
+
+      if (args[0] == "deck") {
+        this.console_log("Cleared deck tracker.");
+        this.clearDeck();
+      }
+
+    } else {
+      // No commands found
+      let i = 0;
+      let min_index = 0;
+      let cur_min_distance = Number.MAX_SAFE_INTEGER;
+      for (let c_commands of this.CONSOLE_COMMANDS) {
+        let distance = this.string_distance(command, c_commands)
+        if (distance < cur_min_distance) {
+          min_index = i;
+          cur_min_distance = distance;
+        }
+        i += 1;
+      }
+      this.console_log("<span>Unknown command. Did you mean</span> <span class='yellow'>" + this.CONSOLE_COMMANDS[min_index] + "</span>?");
     }
   }
 
-  private console_log(message) {
+  private console_log(message, color="") {
     const line_div = document.createElement("div");
     line_div.innerHTML = message;
+    if (color != "") line_div.classList.add(color);
     this._consoleLog.appendChild(line_div)
   }
 
@@ -138,6 +165,9 @@ class InGame extends AppWindow {
 
   // Special events will be highlighted in the event log
   private onNewEvents(e) {
+    // Update the deck tracker reference on info update
+    this._deck_tracker = document.getElementById("deck_tracker_container");
+
     this.logLine(this._eventsLog, e, false);
     this.manageEventState(e);
   }
@@ -229,18 +259,62 @@ class InGame extends AppWindow {
       "          <div class=\"card-body\">" + card["name"] + "</div>\n" +
       "          <div class=\"card-quantity\">" + quantity + "</div>\n";
 
-    let i = 0
+
+    // If the deck has no cards in it
+    if (this._deck_tracker.children.length == 0) {
+      this._deck_tracker.appendChild(card_dom);
+      return;
+    }
+
+    // Insert the card in the proper position
+    let i = 0;
     for (let other_card of this._deck_tracker.children) {
-      if (card["cost"] < parseInt((other_card.children[0] as HTMLElement).innerText)) {
-        // Insert card at the correct position
-        this._deck_tracker.insertBefore(card_dom, this._deck_tracker.children[i-1])
-      } else if (i == this._deck_tracker.children.length - 1) {
-        // this._deck_tracker.appendChild(card_dom)
-        this._deck_tracker.appendChild(card_dom);
+      // If the two cards have the same name, increase the quantity of other_card by 'quantity'
+      if (card["name"] == (other_card.children[1] as HTMLElement).innerText) {
+        (other_card.children[2] as HTMLElement).innerText = parseInt((other_card.children[2] as HTMLElement).innerText) + quantity;
+        return;
+      } else {
+        if (card["cost"] < parseInt((other_card.children[0] as HTMLElement).innerText)) {
+          // Insert card at the correct position
+          this._deck_tracker.insertBefore(card_dom, other_card);
+          return;
+        } else if (i == this._deck_tracker.children.length - 1) {
+          this._deck_tracker.appendChild(card_dom);
+          return;
+        }
       }
       i += 1;
     }
+
+    // If the card hasn't found a correct position, insert it at the end.
+    this._deck_tracker.appendChild(card_dom);
   }
+
+  // Create the deck based upon a list of cards
+  private generateDeck(deck) {
+      this.clearDeck()
+      for (let card of deck) {
+        this.addCard(card, 1)
+      }
+  }
+
+  private clearDeck() {
+    while (this._deck_tracker.firstChild) {
+      this._deck_tracker.removeChild(this._deck_tracker.firstChild);
+    }
+  }
+
+  private string_distance (s, t) {
+    if (!s.length) return t.length;
+    if (!t.length) return s.length;
+
+    return Math.min(
+        this.string_distance(s.substr(1), t) + 1,
+        this.string_distance(t.substr(1), s) + 1,
+        this.string_distance(s.substr(1), t.substr(1)) + (s[0] !== t[0] ? 1 : 0)
+    ) + 1;
+  }
+
 
 }
 
