@@ -130,14 +130,14 @@ class InGame extends AppWindow {
 
   // Log new info to the info log
   private onInfoUpdates(info) {
-    this.logLine(this._infoLog, info, false);
+    // this.logLine(this._infoLog, info, false);
     this.manageInfoState(info);
   }
 
   // Special events will be highlighted in the event log
   private onNewEvents(e) {
-    this.manageEventState(e);
     this.logLine(this._eventsLog, e, false);
+    this.manageEventState(e);
   }
 
   // Displays the toggle minimize/restore hotkey in the window header
@@ -166,10 +166,15 @@ class InGame extends AppWindow {
   }
 
   private updateDecks(data) {
-    // for (let i = 0; i < 3; i += 1) {
-    //   decks.push({name: "deck", cards: ["id1", "id2"]});
-    // }
+    this.logLine(this._infoLog, data, false);
     let deckCount = 0;
+    for (let [key, value] of Object.entries(data)) {
+      deckCount++;
+      // this.console_log(JSON.stringify(JSON.parse("" + value).cards));
+      for (let [k, v] of Object.entries(JSON.parse("" + value).cards)) {
+
+      }
+    }
     this.logLine(this._infoLog, deckCount, true);
   }
 
