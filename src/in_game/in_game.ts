@@ -21,8 +21,10 @@ class InGame extends AppWindow {
   private _consoleLog: HTMLElement;
   private _consoleForm: HTMLElement;
   private _deck_tracker: HTMLElement;
-  private CONSOLE_COMMANDS = ["add", "clear"]
-  private CONSOLE_ARGS = ["card"]
+  private CONSOLE_COMMANDS = ["add", "clear"];
+  private CONSOLE_ARGS = ["card"];
+  private CLIENT_ID = "0dc7b3e55fc647a7bfc500b3e7ed70a9";
+  private CLIENT_SECRET = "kfUaxXrA8QdDIj0xF1ynrb1k3zqUEbId";
 
   private constructor() {
     super(windowNames.inGame);
@@ -166,16 +168,21 @@ class InGame extends AppWindow {
   }
 
   private updateDecks(data) {
+    decks = [];
     this.logLine(this._infoLog, data, false);
     let deckCount = 0;
     for (let [key, value] of Object.entries(data)) {
       deckCount++;
-      // this.console_log(JSON.stringify(JSON.parse("" + value).cards));
-      for (let [k, v] of Object.entries(JSON.parse("" + value).cards)) {
-
+      let name = JSON.stringify(key);
+      let cards = [];
+      for (let [k, v] of Object.entries(JSON.parse("" + value)["cards"])) {
+        let id, count;
+        id = JSON.parse("" + JSON.stringify(v))["id"]
+        count = JSON.parse("" + JSON.stringify(v))["count"]
+        cards.push({"id": id, "count": count})
       }
+      decks.push({"name": name, "cards": cards})
     }
-    this.logLine(this._infoLog, deckCount, true);
   }
 
   private manageInfoState(info) {
